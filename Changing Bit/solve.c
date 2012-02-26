@@ -1,70 +1,61 @@
 #include <stdio.h>
-#define ARR_SIZE 6250
+
+#define ARR_SIZE    6250
+#define ZERO_CHAR   '0'
 
 int main() {
-    unsigned short A[ARR_SIZE], B[ARR_SIZE], C[ARR_SIZE+1], 
-        value, transfer = 0;
+    unsigned short A[ARR_SIZE], B[ARR_SIZE], C[ARR_SIZE+1],
+    value_a = 0, value_b = 0, transfer = 0;
     
-    int j = 0, k = 0, i = 0, n, q, pos, len, bit;
-    char cmd[32], ch;
+    int j = 0, k = 0, i = 0, n, q, pos, value;
+    char a[100001], b[100001], cmd[32], bit;
     
     scanf("%d %d\n", &n, &q);
     
-    len = n >> 4;
-    j = n % 16;
-    if (j) len++;
-    k = j == 0 ? 15 : j - 1;
-    i = 0;
-    while ((ch = getchar()) != '\n') {
-        value |= (ch - 48) << k;
-        k--;
-        if (k == -1) {
-            A[len - i - 1] = value;
-            k = 15;
-            value = 0;
-            i++;
-        }
-    }
-    A[len - i - 1] = value;
+    gets(a);
+    gets(b);
     
-    i = 0;
-    k = j == 0 ? 15 : j - 1;
-    while ((ch = getchar()) != '\n') {
-        value |= (ch - 48) << k;
-        k--;
-        if (k == -1) {
-            B[len - i - 1] = value;
-            k = 15;
-            value = 0;
-            i++;
+    while (n--) {
+        value_a |= (a[n] - ZERO_CHAR) << k;
+        value_b |= (b[n] - ZERO_CHAR) << k;
+        k++;
+        if (k == 16) {
+            A[j] = value_a;
+            B[j++] = value_b;
+            value_a = value_b = k = 0;
         }
     }
-    B[len - i - 1] = value;
+    
+    if (k) {
+        A[j] = value_a;
+        B[j] = value_b;
+    }
     
     while(q--) {
         gets(cmd);
         if (cmd[4] == 'a') {
-            sscanf(cmd, "set_a %d %d", &pos, &bit);
+            sscanf(cmd, "set_a %d %c", &pos, &bit);
             j = pos >> 4;
             k = 1 << (pos % 16);
-            A[j] = bit ? A[j] | k : A[j] & (~k);
+            A[j] = (bit - ZERO_CHAR) ? A[j] | k : A[j] & (~k);
         } else if (cmd[4] == 'b') {
-            sscanf(cmd, "set_b %d %d", &pos, &bit);
+            sscanf(cmd, "set_b %d %c", &pos, &bit);
             j = pos >> 4;
             k = 1 << (pos % 16);
-            B[j] = bit ? B[j] | k : B[j] & (~k);
+            B[j] = (bit - ZERO_CHAR) ? B[j] | k : B[j] & (~k);
         } else {
             sscanf(cmd, "get_c %d", &pos);
             j = pos >> 4;
             k = pos % 16;
+            
             transfer = 0;
             for (i = 0; i <= j; i++) {
                 value = A[i] + B[i] + transfer;
-                C[i] = value & 0xffff;
+                C[i] = value;
                 transfer = value >> 16;
             }
             
-            printf("%d", (C[j] & (1 << k)) >> k);
+            printf("%c", C[j] & (1 << k) ? '1' : '0');
         }
     }
     
